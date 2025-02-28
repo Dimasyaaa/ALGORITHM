@@ -48,6 +48,7 @@ struct Stack {
 void check(const string& expression) {
     Stack stack;
     bool contains = false; // Флаг для отслеживания наличия скобок
+    bool err = false;
 
     for (size_t i = 0; i < expression.size(); i++) {
         char current = expression[i];
@@ -61,6 +62,7 @@ void check(const string& expression) {
         else if (current == ')' || current == '}' || current == ']') {
             if (stack.empty()) {
                 cout << "Ошибка: найдена закрывающая скобка '" << current << "' без соответствующей открывающей." << endl;
+                err = true;
                 return;
             }
             char topItem = stack.pop();
@@ -69,18 +71,24 @@ void check(const string& expression) {
                 (topItem == '{' && current != '}') ||
                 (topItem == '[' && current != ']')) {
                 cout << "Ошибка: несоответствующие скобки '" << topItem << "' и '" << current << "'." << endl;
+                err = true;
                 return;
             }
         }
     }
     // Если стек не пуст в конце, это означает, что есть открывающие скобки без закрывающих
-    if (!stack.empty()) {
-        cout << "Ошибка: есть открывающие скобки без соответствующих закрывающих." << endl;
-        return;
+    while (!stack.empty()) {
+        cout << "Ошибка: есть открывающие скобки без соответствующих закрывающих." << endl; 
+        err = true;
+        stack.pop();
+        
     }
     // Скобочек нет или мы расставили их идеально
     if (!contains) {
         cout << "В строке скобок нет." << endl;
+    }
+    else if (contains && err) {
+        cout << "Есть ошибки!" << endl;
     }
     else {
         cout << "Скобки расставлены правильно." << endl;
