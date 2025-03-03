@@ -1,126 +1,140 @@
 #include <iostream>
 #include <vector>
-#include <fstream>
-#include <sstream>
-//#include <algorithm>
-//#include <set>
+#include <algorithm>
+#include <fstream> // Для работы с файлами
 
 using namespace std;
 
-// ф-ия для считывания ребер графа из стандартного ввода
-vector<pair<int, int>> readEdges() {
-    vector<pair<int, int>> edges; // ребра
-    int u, v; // вершины ркбер
-
-    cout << "Введите рёбра графа в формате 'u v' (для завершения введите '0 0'): " << endl;
-    while (true) {
-        cin >> u >> v;
-        if (u == 0 && v == 0) break; // конец
-        edges.push_back(make_pair(u, v)); // добавление ребер
-    }
-    return edges;
-}
-
-// ф-ия для анализа графа и вывода характеристик
-void analyzeGraph(const vector<pair<int, int>>& edges, const string& filename) {
-    set<int> vertices; // множество для уникальных вершин
-    vector<int> degrees; // вектор для  степеней вершин
-    bool hasLoops = false; // наличие петель
-
-    // проход по всем рёбрам 
-    for (const auto& edge : edges) {
-        int u = edge.first;
-        int v = edge.second;
-
-        // обновление  вершин
-        vertices.insert(u);
-        vertices.insert(v);
-
-        // проверка петель
-        if (u == v) {
-            hasLoops = true;
-        }
-    }
-    //  вектор степеней
-    int maxVertex = *vertices.rbegin(); //макс вершина из множества
-    degrees.resize(maxVertex + 1, 0); // увелечинеи размера вектора до максимальной вершины
-
-    for (const auto& edge : edges) {
-        degrees[edge.first]++;
-        degrees[edge.second]++;
-    }
-    // хара-ки графа
-    int numVertices = vertices.size(); // колво вершин
-    int numEdges = edges.size(); // колво ребер
-    // вывод матрицы смежности
-    vector<vector<int>> adjacencyMatrix(numVertices + 1, vector<int>(numVertices + 1, 0));
-
-    for (const auto& edge : edges) {
-        adjacencyMatrix[edge.first][edge.second] = 1;
-        adjacencyMatrix[edge.second][edge.first] = 1; // Обновление матрицы для неориентированного графа
-    }
-
-    cout << "Матрица смежности:\n";
-    for (int i = 1; i <= numVertices; i++) {
-        for (int j = 1; j <= numVertices; j++) {
-            cout << adjacencyMatrix[i][j] << " ";
-        }
-        cout << endl;
-    }
-    cout << "Количество вершин: " << numVertices << endl;
-    cout << "Количество рёбер: " << numEdges << endl;
-    // провека изолированных вершин
-    bool hasIsolated = false;
-    for (int i = 1; i <= maxVertex; i++) {
-        if (degrees[i] == 0) {
-            hasIsolated = true;
-            break;
-        }
-    }
-    cout << "Наличие изолированных вершин: " << (hasIsolated ? "Есть" : "Нет") << endl;
-    // проверка петли
-    cout << "Наличие петель: " << (hasLoops ? "Есть" : "Нет") << endl;
-    // список степеней вершин
-    vector<int> degreeList;
-    for (int i = 1; i <= maxVertex; i++) {
-        if (degrees[i] > 0) { // пропуск изолированных вершин
-            degreeList.push_back(degrees[i]);
-        }
-    }
-    // сортировка
-    sort(degreeList.begin(), degreeList.end(), greater<int>());
-
-    cout << "Список степеней вершин в порядке убывания: ";
-    for (int degree : degreeList) {
-        cout << degree << " "; // вывод степеней вершин
-    }
-    cout << endl;
-    // сохр в файл
-    ofstream outfile(filename, ios::app);
-    outfile << "\n--- Выходные данные ---\n";
-    outfile << "Матрица смежности:\n";
-    for (const auto& row : adjacencyMatrix) {
-        for (int val : row) {
-            outfile << val << " ";
-        }
-        outfile << endl;
-    }
-    outfile << "Количество вершин: " << numVertices << endl;
-    outfile << "Количество рёбер: " << numEdges << endl;
-    outfile << "Наличие изолированных вершин: " << (hasIsolated ? "Есть" : "Нет") << endl;
-    outfile << "Наличие петель: " << (hasLoops ? "Есть" : "Нет") << endl;
-    outfile << "Список степеней вершин в порядке убывания: ";
-    for (int degree : degreeList) {
-        outfile << degree << " ";
-    }
-    outfile << endl;
-    outfile.close();
+// Функция для нахождения максимального значения между двумя числами
+int max(int a, int b) {
+    return a > b ? a : b;
 }
 
 int main() {
     setlocale(LC_ALL, "Rus");
-    vector<pair<int, int>> edges = readEdges();
-    analyzeGraph(edges, "output.txt");
+
+    int edges; // Количество рёбер
+    cout << "Введите количество рёбер графа:" << endl;
+    cin >> edges;
+
+    // Вектор для хранения рёбер графа
+    vector<vector<int>> listOfEdges(edges, vector<int>(2, 0));
+    int node1, node2, vertices = 0; // Переменные для хранения узлов и количества вершин
+
+    // Ввод рёбер
+    cout << "Введите рёбра (node1 node2):" << endl;
+    for (int i = 0; i < edges; i++) {
+        cin >> node1 >> node2;
+        // Обновляем количество вершин
+        if (max(node1, node2) > vertices) vertices = max(node1, node2);
+        listOfEdges[i][0] = node1;
+        listOfEdges[i][1] = node2;
+    }
+
+    vertices++; // Увеличиваем количество вершин для корректной индексации
+    // Создание матрицы смежности
+    vector<vector<int>> matrix(vertices, vector<int>(vertices, 0));
+    for (int i = 0; i < edges; i++) {
+        matrix[listOfEdges[i][0]][listOfEdges[i][1]] = 1; // Устанавливаем связь между узлами
+        matrix[listOfEdges[i][1]][listOfEdges[i][0]] = 1; // Для неориентированного графа
+    }
+
+    bool isolatedFlag; // Флаг для проверки изолированных вершин
+    vector<int> isolated; // Список изолированных вершин
+    vector<int> loops; // Список петель
+    vector<int> degrees(vertices, 0); // Вектор для хранения степеней вершин
+
+    // Анализ графа
+    for (int i = 0; i < vertices; i++) {
+        isolatedFlag = true; // Сбрасываем флаг изолированной вершины
+        for (int j = 0; j < vertices; j++) {
+            if (matrix[i][j] == 1) { // Если есть связь
+                if (i != j) isolatedFlag = false; // Условие для изолированной вершины
+                if (i == j) {
+                    loops.push_back(i); // Если вершина соединена сама с собой
+                }
+                degrees[i]++; // Увеличиваем степень вершины
+            }
+        }
+        if (isolatedFlag) isolated.push_back(i); // Если вершина изолирована, добавляем в список
+    }
+
+    // Вывод результатов на экран
+    cout << "\t\tРЕЗУЛЬТАТ" << endl;
+    cout << "Матрица смежности:" << endl;
+    for (int i = 0; i < vertices; i++) {
+        for (int j = 0; j < vertices; j++) {
+            cout << matrix[i][j] << "\t"; // Вывод матрицы смежности
+        }
+        cout << endl;
+    }
+    cout << "Количество вершин: " << vertices << endl;
+    cout << "Количество рёбер: " << edges << endl;
+    cout << "Количество изолированных вершин: " << isolated.size() << endl;
+    if (!isolated.empty()) {
+        cout << "Изолированные вершины: ";
+        for (int i = 0; i < isolated.size(); i++) {
+            cout << isolated[i] << "\t"; // Вывод изолированных вершин
+        }
+        cout << endl;
+    } else {
+        cout << "Нет изолированных вершин." << endl; // Сообщение, если нет изолированных вершин
+    }
+    cout << "Количество петель: " << loops.size() << endl;
+    if (!loops.empty()) {
+        cout << "Петли находятся в вершинах: ";
+        for (int i = 0; i < loops.size(); i++) {
+            cout << loops[i] << "\t"; // Вывод петель
+        }
+        cout << endl;
+    }
+
+    // Сортировка степеней вершин в порядке убывания
+    sort(degrees.begin(), degrees.end(), greater<int>());
+    cout << "Степени вершин в порядке убывания:" << endl;
+    for (int i = 0; i < vertices; i++) {
+        cout << degrees[i] << "\t"; // Вывод степеней вершин
+    }
+    cout << endl;
+
+    // Запись выходных данных в файл
+    ofstream outputFile("graph_output.txt", ios::app); // Открываем файл для записи
+    outputFile << "\n\t\tРЕЗУЛЬТАТ" << endl;
+    outputFile << "Матрица смежности:" << endl;
+    for (int i = 0; i < vertices; i++) {
+        for (int j = 0; j < vertices; j++) {
+            outputFile << matrix[i][j] << "\t"; // Запись матрицы смежности в файл
+        }
+        outputFile << endl;
+    }
+    outputFile << "Количество вершин: " << vertices << endl;
+    outputFile << "Количество рёбер: " << edges << endl;
+    outputFile << "Количество изолированных вершин: " << isolated.size() << endl;
+    if (!isolated.empty()) {
+        outputFile << "Изолированные вершины: ";
+        for (int i = 0; i < isolated.size(); i++) {
+            outputFile << isolated[i] << "\t"; // Запись изолированных вершин в файл
+        }
+        outputFile << endl;
+    } else {
+        outputFile << "Нет изолированных вершин." << endl; // Запись в файл, если нет изолированных вершин
+    }
+    outputFile << "Количество петель: " << loops.size() << endl;
+    if (!loops.empty()) {
+        outputFile << "Петли находятся в вершинах: ";
+        for (int i = 0; i < loops.size(); i++) {
+            outputFile << loops[i] << "\t"; // Запись петель в файл
+        }
+        outputFile << endl;
+    }
+
+    outputFile << "Степени вершин в порядке убывания:" << endl;
+    for (int i = 0; i < vertices; i++) {
+        outputFile << degrees[i] << "\t"; // Запись степеней вершин в файл
+    }
+    outputFile.close(); 
+
+    cout << "Пожалуйста, обратите внимание: нумерация вершин начинается с 0." << endl; // Указание на нумерацию
 
     return 0;
 }
