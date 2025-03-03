@@ -64,7 +64,7 @@ void check(const string& expression) {
             if (stack.empty()) {
                 cout << "Ошибка: найдена закрывающая скобка '" << current << "' без соответствующей открывающей." << endl;
                 err = true;
-                return;
+                //return;
             }
             char topItem = stack.pop();
             // Проверка на соответствие скобок
@@ -73,7 +73,7 @@ void check(const string& expression) {
                 (topItem == '[' && current != ']')) {
                 cout << "Ошибка: несоответствующие скобки '" << topItem << "' и '" << current << "'." << endl;
                 err = true;
-                return;
+                //return;
             }
         }
     }
