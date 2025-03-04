@@ -11,61 +11,65 @@ int max(int a, int b) {
 }
 
 int main() {
-
     setlocale(LC_ALL, "Rus");
 
-    int edges; // Количество рёбер
+    // инфа о нумерации вершин
+    cout << "Внимание: нумерация вершин начинается с 0." << endl;
+    cout << "Изолированная вершина — это вершина, не имеющая рёбер, то есть не соединенная ни с одной другой вершиной." << endl;
+    cout << "Чтобы создать изолированную вершину, необходимо не указывать её в списке рёбер." << endl;
+
+    int edges; // колво ребер
     cout << "Введите количество рёбер графа:" << endl;
     cin >> edges;
 
-    // Вектор для хранения рёбер графа
+    // Вектор для хранения ребер графа
     vector<vector<int>> listOfEdges(edges, vector<int>(2, 0));
-    int node1, node2, vertices = 0; // Переменные для хранения узлов и количества вершин
+    int node1, node2, vertices = 0; //  узлы и колво вершин
 
-    // Ввод рёбер
+    // ввод ребер
     cout << "Введите рёбра (node1 node2):" << endl;
     for (int i = 0; i < edges; i++) {
         cin >> node1 >> node2;
-        // Обновляем количество вершин
+        // обновляем колво вершин
         if (max(node1, node2) > vertices) vertices = max(node1, node2);
         listOfEdges[i][0] = node1;
         listOfEdges[i][1] = node2;
     }
 
-    vertices++; // Увеличиваем количество вершин для корректной индексации
-    // Создание матрицы смежности
+    vertices++; // + количество вершин
+    // матрица смежности
     vector<vector<int>> matrix(vertices, vector<int>(vertices, 0));
     for (int i = 0; i < edges; i++) {
-        matrix[listOfEdges[i][0]][listOfEdges[i][1]] = 1; // Устанавливаем связь между узлами
-        matrix[listOfEdges[i][1]][listOfEdges[i][0]] = 1; // Для неориентированного графа
+        matrix[listOfEdges[i][0]][listOfEdges[i][1]] = 1; // связь между узлами
+        matrix[listOfEdges[i][1]][listOfEdges[i][0]] = 1; // для неориентированного графа
     }
 
-    bool isolatedFlag; // Флаг для проверки изолированных вершин
-    vector<int> isolated; // Список изолированных вершин
-    vector<int> loops; // Список петель
-    vector<int> degrees(vertices, 0); // Вектор для хранения степеней вершин
+    bool isolatedFlag; // флаг для изолированных вершин
+    vector<int> isolated; // список изолированных вершин
+    vector<int> loops; // список петель
+    vector<int> degrees(vertices, 0); // вектор для хранения степеней вершин
 
-    // Анализ графа
+    // анализ графа
     for (int i = 0; i < vertices; i++) {
-        isolatedFlag = true; // Сбрасываем флаг изолированной вершины
+        isolatedFlag = true;
         for (int j = 0; j < vertices; j++) {
-            if (matrix[i][j] == 1) { // Если есть связь
-                if (i != j) isolatedFlag = false; // Условие для изолированной вершины
+            if (matrix[i][j] == 1) { // если есть связь
+                if (i != j) isolatedFlag = false; // изолированная вершина
                 if (i == j) {
-                    loops.push_back(i); // Если вершина соединена сама с собой
+                    loops.push_back(i); // если соединена сама с собой
                 }
                 degrees[i]++; // Увеличиваем степень вершины
             }
         }
-        if (isolatedFlag) isolated.push_back(i); // Если вершина изолирована, добавляем в список
+        if (isolatedFlag) isolated.push_back(i); // если изолирована, добавляем в список
     }
 
-    // Вывод результатов на экран
+    // вывод резов
     cout << "\t\tРЕЗУЛЬТАТ" << endl;
     cout << "Матрица смежности:" << endl;
     for (int i = 0; i < vertices; i++) {
         for (int j = 0; j < vertices; j++) {
-            cout << matrix[i][j] << "\t"; // Вывод матрицы смежности
+            cout << matrix[i][j] << "\t"; 
         }
         cout << endl;
     }
@@ -75,7 +79,7 @@ int main() {
     if (!isolated.empty()) {
         cout << "Изолированные вершины: ";
         for (int i = 0; i < isolated.size(); i++) {
-            cout << isolated[i] << "\t"; // Вывод изолированных вершин
+            cout << isolated[i] << "\t"; 
         }
         cout << endl;
     }
@@ -83,26 +87,26 @@ int main() {
     if (!loops.empty()) {
         cout << "Петли находятся в вершинах: ";
         for (int i = 0; i < loops.size(); i++) {
-            cout << loops[i] << "\t"; // Вывод петель
+            cout << loops[i] << "\t"; 
         }
         cout << endl;
     }
 
-    // Сортировка степеней вершин в порядке убывания
+    // сортировка  вершин в порядке убывания
     sort(degrees.begin(), degrees.end(), greater<int>());
     cout << "Степени вершин в порядке убывания:" << endl;
     for (int i = 0; i < vertices; i++) {
-        cout << degrees[i] << "\t"; // Вывод степеней вершин
+        cout << degrees[i] << "\t";
     }
     cout << endl;
 
-    // Запись выходных данных в файл
-    ofstream outputFile("graph_output.txt", ios::app); // Открываем файл для записи
+    // запись данных в файл
+    ofstream outputFile("graph.txt", ios::app); 
     outputFile << "\n\t\tРЕЗУЛЬТАТ" << endl;
     outputFile << "Матрица смежности:" << endl;
     for (int i = 0; i < vertices; i++) {
         for (int j = 0; j < vertices; j++) {
-            outputFile << matrix[i][j] << "\t"; // Запись матрицы смежности в файл
+            outputFile << matrix[i][j] << "\t";
         }
         outputFile << endl;
     }
@@ -112,7 +116,7 @@ int main() {
     if (!isolated.empty()) {
         outputFile << "Изолированные вершины: ";
         for (int i = 0; i < isolated.size(); i++) {
-            outputFile << isolated[i] << "\t"; // Запись изолированных вершин в файл
+            outputFile << isolated[i] << "\t"; 
         }
         outputFile << endl;
     }
@@ -120,16 +124,15 @@ int main() {
     if (!loops.empty()) {
         outputFile << "Петли находятся в вершинах: ";
         for (int i = 0; i < loops.size(); i++) {
-            outputFile << loops[i] << "\t"; // Запись петель в файл
+            outputFile << loops[i] << "\t";
         }
         outputFile << endl;
     }
-
     outputFile << "Степени вершин в порядке убывания:" << endl;
     for (int i = 0; i < vertices; i++) {
-        outputFile << degrees[i] << "\t"; // Запись степеней вершин в файл
+        outputFile << degrees[i] << "\t";
     }
-    outputFile.close(); 
+    outputFile.close();
 
     return 0;
 }
