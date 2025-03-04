@@ -1,19 +1,29 @@
 #include <iostream>
 #include <string>
-
 using namespace std;
 
-void to_binary(unsigned long n) {
-    if (n >= 2) {
-        to_binary(n / 2);
+string to_binary(unsigned long n) { // переписал с Си
+    string result;
+    
+    if (n == 0) {
+        return "0"; // обработка 0
     }
-    cout << (n % 2); // Выводим младший бит
+
+    while (n > 0) {
+        result = to_string(n % 2) + result; // младший бит в начале строки
+        n /= 2;
+    }
+    return result;
+}
+
+void reverse(const string& binary) { // ф-ия перевернутая двоичная форма
+    for (int i = binary.length() - 1; i >= 0; --i) {
+        cout << binary[i]; // Выводим каждый бит в обратном порядке
+    }
 }
 
 int main() {
-
     setlocale(LC_ALL, "Rus");
-
     unsigned long number;
 
     while (true) {
@@ -25,7 +35,6 @@ int main() {
             cout << "Программа завершена!" << endl;
             break;
         }
-
         try {
             number = stoul(input);
             if (number < 9 || number > 15) {
@@ -33,8 +42,11 @@ int main() {
                 continue;
             }
             cout << "Число в двоичной форме: ";
-            to_binary(number);
-            cout << endl; // Для разделения выводов
+            string binary = to_binary(number); // Получаем двоичное представление
+            cout << binary << endl; // Выводим на экран
+            cout << "Число в двоичной форме (в обратном порядке): ";
+            reverse(binary); // Вызываем функцию для вывода в обратном порядке
+            cout << endl;
         }
         catch (invalid_argument&) {
             cout << "Некорректный ввод. Пожалуйста, введите целое число или Q для завершения." << endl;
