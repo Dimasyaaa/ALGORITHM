@@ -13,34 +13,34 @@ int max(int a, int b) {
 int main() {
     setlocale(LC_ALL, "Rus");
 
-    // инфа о нумерации вершин
+    // информация о нумерации вершин
     cout << "Внимание: нумерация вершин начинается с 0." << endl;
     cout << "Изолированная вершина — это вершина, не имеющая рёбер, то есть не соединенная ни с одной другой вершиной." << endl;
     cout << "Чтобы создать изолированную вершину, необходимо не указывать её в списке рёбер." << endl;
 
-    int edges; // колво ребер
+    int edges; // количество рёбер
     cout << "Введите количество рёбер графа:" << endl;
     cin >> edges;
 
-    // Вектор для хранения ребер графа
+    // Вектор для хранения рёбер графа
     vector<vector<int>> listOfEdges(edges, vector<int>(2, 0));
-    int node1, node2, vertices = 0; //  узлы и колво вершин
+    int node1, node2, vertices = 0; // узлы и количество вершин
 
-    // ввод ребер
+    // Ввод рёбер
     cout << "Введите рёбра (node1 node2):" << endl;
     for (int i = 0; i < edges; i++) {
         cin >> node1 >> node2;
-        // обновляем колво вершин
+        // обновляем количество вершин
         if (max(node1, node2) > vertices) vertices = max(node1, node2);
         listOfEdges[i][0] = node1;
         listOfEdges[i][1] = node2;
     }
 
-    vertices++; // + количество вершин
-    // матрица смежности
+    vertices++; // увеличиваем количество вершин для корректной индексации
+    // создание матрицы смежности
     vector<vector<int>> matrix(vertices, vector<int>(vertices, 0));
     for (int i = 0; i < edges; i++) {
-        matrix[listOfEdges[i][0]][listOfEdges[i][1]] = 1; // связь между узлами
+        matrix[listOfEdges[i][0]][listOfEdges[i][1]] = 1; // устанавливаем связь между узлами
         matrix[listOfEdges[i][1]][listOfEdges[i][0]] = 1; // для неориентированного графа
     }
 
@@ -58,18 +58,18 @@ int main() {
                 if (i == j) {
                     loops.push_back(i); // если соединена сама с собой
                 }
-                degrees[i]++; // Увеличиваем степень вершины
+                degrees[i]++; // увеличиваем степень вершины
             }
         }
         if (isolatedFlag) isolated.push_back(i); // если изолирована, добавляем в список
     }
 
-    // вывод резов
+    // вывод результатов
     cout << "\t\tРЕЗУЛЬТАТ" << endl;
     cout << "Матрица смежности:" << endl;
     for (int i = 0; i < vertices; i++) {
         for (int j = 0; j < vertices; j++) {
-            cout << matrix[i][j] << "\t"; 
+            cout << matrix[i][j] << "\t";
         }
         cout << endl;
     }
@@ -79,20 +79,20 @@ int main() {
     if (!isolated.empty()) {
         cout << "Изолированные вершины: ";
         for (int i = 0; i < isolated.size(); i++) {
-            cout << isolated[i] << "\t"; 
+            cout << isolated[i] << "\t";
         }
         cout << endl;
     }
     cout << "Количество петель: " << loops.size() << endl;
     if (!loops.empty()) {
-        cout << "Петли находятся в вершинах: ";
+        cout << "Петли находятся в вершинах(счет с 0): ";
         for (int i = 0; i < loops.size(); i++) {
-            cout << loops[i] << "\t"; 
+            cout << loops[i] << "\t";
         }
         cout << endl;
     }
 
-    // сортировка  вершин в порядке убывания
+    // сортировка степеней вершин в порядке убывания
     sort(degrees.begin(), degrees.end(), greater<int>());
     cout << "Степени вершин в порядке убывания:" << endl;
     for (int i = 0; i < vertices; i++) {
@@ -101,7 +101,7 @@ int main() {
     cout << endl;
 
     // запись данных в файл
-    ofstream outputFile("graph.txt", ios::app); 
+    ofstream outputFile("graph.txt", ios::app);
     outputFile << "\n\t\tРЕЗУЛЬТАТ" << endl;
     outputFile << "Матрица смежности:" << endl;
     for (int i = 0; i < vertices; i++) {
@@ -116,13 +116,13 @@ int main() {
     if (!isolated.empty()) {
         outputFile << "Изолированные вершины: ";
         for (int i = 0; i < isolated.size(); i++) {
-            outputFile << isolated[i] << "\t"; 
+            outputFile << isolated[i] << "\t";
         }
         outputFile << endl;
     }
     outputFile << "Количество петель: " << loops.size() << endl;
     if (!loops.empty()) {
-        outputFile << "Петли находятся в вершинах: ";
+        outputFile << "Петли находятся в вершинах(счет с 0): ";
         for (int i = 0; i < loops.size(); i++) {
             outputFile << loops[i] << "\t";
         }
