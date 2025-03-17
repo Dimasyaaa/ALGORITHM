@@ -2,7 +2,8 @@
 #include <vector>
 #include <algorithm>
 #include <set>
-#include <fstream> 
+#include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -19,7 +20,7 @@ int main() {
     cout << "Изолированная вершина — это вершина, не имеющая рёбер, то есть не соединенная ни с одной другой вершиной." << endl;
 
     int edges; // количество рёбер
-    cout << "Введите количество рёбер графа:" << endl;
+    cout << "Введите значение для рёбер графа:" << endl;
     cin >> edges;
 
     if (edges < 0) {
@@ -28,25 +29,27 @@ int main() {
     }
 
     // Вектор для хранения рёбер графа
-    vector<vector<int>> listOfEdges;
+    vector<pair<int, int>> listOfEdges; // теперь храним пары вершин
     set<int> edge; // множество вершин
-    int node1, node2, vertices = 0; // узлы и количество вершин
+    int node1, node2;
     vector<int> isol; // список изолированных вершин
-    int edgesCount = 0; //кол-во вершин адекватное
+    int edgesCount = 0; // количество рёбер адекватное
+
     // Ввод рёбер
-    cout << "Введите рёбра (node1 node2), для изолированных вершин введите -1 node:" << endl;
+    cout << "Введите рёбра (node1 node2), для изолированных вершин введите -1 в любой node(лучше во второй):" << endl;
     for (int i = 0; i < edges; i++) {
         cin >> node1 >> node2;
 
         if (node1 != -1 && node2 != -1) {
-            // Добавляем рёбра
+            // добавляем ребра
             edgesCount++;
-            for ( int j = 0; j < isol.size(); j++)
-            {
-                if (isol[j] == node1 || isol[j] == node2)
-                {
-                    cout<<"Одна из введеных вершин изолирована! Попробуйте сначала!!!" << endl;
-                    return 0;
+            for (int j = 0; j < isol.size(); j++) {
+                if (isol[j] == node1 || isol[j] == node2) {
+                    cout << "Одна из введенных вершин изолирована! Попробуйте сначала!!!" << endl;
+                    //return 0;
+                    i--;
+                    continue;
+                    
                 }
             }
             edge.insert(node1);
@@ -59,24 +62,34 @@ int main() {
 
             if (edge.find(isolatedNode) != edge.end()) {
                 cout << "Данная вершина не может быть изолирована! Попробуйте сначала!!!" << endl;
-                return 1;
+                //return 1;
+                i--;
+                continue;
+                
             }
             isol.push_back(isolatedNode);
             edge.insert(isolatedNode);
         }
     }
 
-    // Обновляем количество вершин
+    // Определяем количество вершин
+    int vertices = edge.size();
+    cout << "Количество уникальных вершин: " << vertices << endl;
+
+    // Создание отображения значений вершин к индексам
+    map<int, int> vertexIndex;
+    int index = 0;
     for (int v : edge) {
-        vertices = max(vertices, v);
+        vertexIndex[v] = index++;
     }
-    vertices++; // увеличиваем количество вершин для корректной индексации
 
     // Создание матрицы смежности
-    vector<vector<int>> matrix(vertices, vector<int>(vertices, 0));
-    for (const auto& edge : listOfEdges) {
-        matrix[edge[0]][edge[1]] = 1; // устанавливаем связь между узлами
-        matrix[edge[1]][edge[0]] = 1; // для неориентированного графа
+    vector<vector<int>> matrica(vertices, vector<int>(vertices, 0));
+    for (const auto& edgess : listOfEdges) {
+        int u = vertexIndex[edgess.first];
+        int v = vertexIndex[edgess.second];
+        matrica[u][v] = 1; // устанавливаем связь между узлами
+        matrica[v][u] = 1; // для неориентированного графа
     }
 
     bool isolatedFlag; // флаг для изолированных вершин
@@ -87,7 +100,7 @@ int main() {
     for (int i = 0; i < vertices; i++) {
         isolatedFlag = true;
         for (int j = 0; j < vertices; j++) {
-            if (matrix[i][j] == 1) { // если есть связь
+            if (matrica[i][j] == 1) { // если есть связь
                 isolatedFlag = false; // не изолированная вершина
                 if (i == j) {
                     loops.push_back(i); // если соединена сама с собой
@@ -96,12 +109,13 @@ int main() {
             }
         }
     }
+
     // Вывод результатов
     cout << "\t\tРЕЗУЛЬТАТ" << endl;
     cout << "Матрица смежности:" << endl;
     for (int i = 0; i < vertices; i++) {
         for (int j = 0; j < vertices; j++) {
-            cout << matrix[i][j] << "\t";
+            cout << matrica[i][j] << "\t";
         }
         cout << endl;
     }
@@ -119,7 +133,7 @@ int main() {
     if (!loops.empty()) {
         cout << "Петли находятся в вершинах: ";
         for (int i : loops) {
-            cout << i << "\t";
+            cout << i + 1 << "\t";
         }
         cout << endl;
     }
@@ -138,7 +152,7 @@ int main() {
     outputFile << "Матрица смежности:" << endl;
     for (int i = 0; i < vertices; i++) {
         for (int j = 0; j < vertices; j++) {
-            outputFile << matrix[i][j] << "\t";
+            outputFile << matrica[i][j] << "\t";
         }
         outputFile << endl;
     }
@@ -156,7 +170,7 @@ int main() {
     if (!loops.empty()) {
         outputFile << "Петли находятся в вершинах: ";
         for (int i : loops) {
-            outputFile << i << "\t";
+            outputFile << i+1 << "\t";
         }
         outputFile << endl;
     }
