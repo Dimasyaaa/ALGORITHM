@@ -104,6 +104,7 @@ int main() {
                 isolatedFlag = false; // не изолированная вершина
                 if (i == j) {
                     loops.push_back(i); // если соединена сама с собой
+                    degrees[i]++;
                 }
                 degrees[i]++; // увеличиваем степень вершины
             }
