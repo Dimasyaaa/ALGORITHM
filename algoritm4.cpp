@@ -134,6 +134,7 @@ bool isValidWord(const string& word, int requiredLength) {
     return true;
 }
 
+
 int main() {
     setlocale(LC_ALL, "Rus");
 
