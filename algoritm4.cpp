@@ -3,9 +3,10 @@
 #include <string>
 #include <algorithm>
 #include <random>
-#include <fstream>  // для работы с файлами
-#include <sstream>  // для обработки строкового ввода
-#include <cctype>   // для isalpha
+#include <fstream>
+#include <sstream>
+#include <cctype>
+#include <limits> // для numeric_limits
 
 using namespace std;
 
@@ -20,17 +21,14 @@ void LSDRadixSort(vector<int>& arr, int k, ofstream& outFile) {
     int n = arr.size();
     int exp = 1;
 
-    // вектор для очередей по десятичным числам
     vector<vector<int>> buckets(10);
 
     for (int i = 0; i < k; i++) {
-        // распределение по очередям
         for (int j = 0; j < n; j++) {
             int digit = (arr[j] / exp) % 10;
             buckets[digit].push_back(arr[j]);
         }
 
-        // печать промежуточного вывода
         stringstream ss;
         ss << "Промежуточная последовательность после сортировки по разряду " << i + 1 << ": ";
         for (int b = 0; b < 10; b++) {
@@ -41,18 +39,15 @@ void LSDRadixSort(vector<int>& arr, int k, ofstream& outFile) {
         ss << endl;
         writeToFile(outFile, ss.str());
 
-        // слияние очередей
         arr.clear();
         for (int b = 0; b < 10; b++) {
             arr.insert(arr.end(), buckets[b].begin(), buckets[b].end());
             buckets[b].clear();
         }
 
-        // переход к следующему разряду
         exp *= 10;
     }
 
-    // конечный отсортированный вывод
     stringstream ss;
     ss << "Полностью отсортированная последовательность: ";
     for (int num : arr) {
@@ -75,13 +70,47 @@ vector<int> generateRandomNumbers(int n, int k) {
     return numbers;
 }
 
-// функция для ввода чисел с клавиатуры
+// функция для ввода чисел с клавиатуры построчно
 vector<int> inputNumbersManually(int n) {
-    vector<int> numbers(n);
-    cout << "Введите " << n << " чисел через пробел: ";
-    for (int i = 0; i < n; ++i) {
-        cin >> numbers[i];
+    vector<int> numbers;
+    string input;
+
+    cout << "Введите " << n << " положительных чисел (0 допустимо) по одному на строке:" << endl;
+    cout << "(Если вы ввели больше, то будет выведено только указанное количество чисел!)" << endl;
+
+    while (numbers.size() < n) {
+        getline(cin, input); // считываем строку ввода
+
+        // Проверка на некорректный ввод
+        int num;
+        try {
+            num = stoi(input); // преобразуем строку в число
+        }
+        catch (invalid_argument&) {
+            cout << "Ошибка: Пожалуйста, вводите только целые числа. Попробуйте ещё раз." << endl;
+            continue; // Пропускаем итерацию, если ввод некорректный
+        }
+        catch (out_of_range&) {
+            cout << "Ошибка: Число вне допустимого диапазона. Попробуйте ещё раз." << endl;
+            continue; // Пропускаем итерацию, если число вне допустимого диапазона
+        }
+
+        // Проверка на отрицательные числа
+        if (num < 0) {
+            cout << "Ошибка: Вводите только положительные числа или 0. Попробуйте еще раз." << endl;
+            continue; // Пропускаем итерацию, если число отрицательное
+        }
+
+        // Добавляем число в вектор
+        numbers.push_back(num);
+
+        // Проверка на превышение введенных чисел
+        if (numbers.size() > n) {
+            cout << "Ошибка: Вы ввели больше чисел, чем требовалось. У вас " << numbers.size() << " чисел." << endl;
+            numbers.pop_back(); // Удаляем последнее введенное число
+        }
     }
+
     return numbers;
 }
 
@@ -91,13 +120,11 @@ void LSDRadixSortWords(vector<string>& arr, int k, ofstream& outFile) {
     vector<vector<string>> buckets(26); // 26 букв английского алфавита
 
     for (int i = k - 1; i >= 0; i--) {
-        // распределение по очередям на основании i-го символа
         for (int j = 0; j < n; j++) {
             char c = tolower(arr[j][i]); // приводим к нижнему регистру
             buckets[c - 'a'].push_back(arr[j]);
         }
 
-        // печать промежуточного вывода
         stringstream ss;
         ss << "Промежуточная последовательность после сортировки по разряду " << i + 1 << ": ";
         for (int b = 0; b < 26; b++) {
@@ -108,7 +135,6 @@ void LSDRadixSortWords(vector<string>& arr, int k, ofstream& outFile) {
         ss << endl;
         writeToFile(outFile, ss.str());
 
-        // слияние очередей
         arr.clear();
         for (int b = 0; b < 26; b++) {
             arr.insert(arr.end(), buckets[b].begin(), buckets[b].end());
@@ -116,7 +142,6 @@ void LSDRadixSortWords(vector<string>& arr, int k, ofstream& outFile) {
         }
     }
 
-    // отсортированный вывод
     stringstream ss;
     ss << "Полностью отсортированная последовательность: ";
     for (const auto& word : arr) {
@@ -134,11 +159,9 @@ bool isValidWord(const string& word, int requiredLength) {
     return true;
 }
 
-
 int main() {
     setlocale(LC_ALL, "Rus");
 
-    // Открываем файл для записи
     ofstream outFile("output.txt");
     if (!outFile) {
         cerr << "Не удалось открыть файл для записи!" << endl;
@@ -148,18 +171,17 @@ int main() {
     int n, k, choice;
     cout << "Введите количество чисел: ";
     cin >> n;
-    //writeToFile(outFile, "Введите количество чисел: " + to_string(n) + "\n");
 
     cout << "Введите количество разрядов в числах: ";
     cin >> k;
-    //writeToFile(outFile, "Введите количество разрядов в числах: " + to_string(k) + "\n");
 
     cout << "Выберите способ заполнения чисел: " << endl;
     cout << "1) Вручную" << endl;
     cout << "2) Рандомными числами" << endl;
-    //writeToFile(outFile, "Выберите способ заполнения чисел: \n1) Вручную\n2) Рандомными числами\n");
 
     cin >> choice;
+    cin.ignore(); // очищаем буфер ввода после выбора
+
     vector<int> numbers;
 
     if (choice == 2) {
@@ -184,7 +206,7 @@ int main() {
         ss << endl;
         writeToFile(outFile, ss.str());
 
-        //  максимальное количество разрядов
+        // максимальное количество разрядов
         int maxDigits = 0;
         for (int num : numbers) {
             int digits = to_string(abs(num)).length();
@@ -201,32 +223,27 @@ int main() {
 
     cout << "Введите количество слов: ";
     cin >> n;
-    //writeToFile(outFile, "Введите количество слов: " + to_string(n) + "\n");
 
     cout << "Вводите только буквы английского алфавита, иначе будет выведена ошибка)" << endl;
-    //writeToFile(outFile, "Вводите только буквы английского алфавита, иначе будет выведена ошибка)\n");
 
     cout << "Введите количество букв в словах: ";
     cin >> k;
-    //writeToFile(outFile, "Введите количество букв в словах: " + to_string(k) + "\n");
 
     cin.ignore(); // очищаем буфер ввода
 
     vector<string> words(n);
     cout << "Введите слова (каждое слово должно состоять из " << k << " букв):" << endl;
-    //writeToFile(outFile, "Введите слова (каждое слово должно состоять из " + to_string(k) + " букв):\n");
 
     for (int i = 0; i < n; ++i) {
         while (true) {
-            cin >> words[i];
-            // Приводим слово к нижнему регистру
+            getline(cin, words[i]); // считываем слово
             transform(words[i].begin(), words[i].end(), words[i].begin(), ::tolower);
             if (isValidWord(words[i], k)) {
                 break; // если слово корректное, выходим из цикла
             }
             else {
                 string errorMsg = "Ошибка: слово должно состоять из " + to_string(k) +
-                                " букв и не содержать цифр. А также состоять только из букв английского алфавита. Попробуйте еще раз:\n";
+                    " букв и не содержать цифр. А также состоять только из букв английского алфавита. Попробуйте еще раз:\n";
                 writeToFile(outFile, errorMsg);
                 cout << errorMsg;
             }
