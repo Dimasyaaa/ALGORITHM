@@ -2,162 +2,171 @@
 #include <vector>
 #include <algorithm>
 #include <random>
-#include <fstream>  
+#include <fstream>
 #include <iomanip>
 
 using namespace std;
 
-// фия для случайной последовательности
-vector<int> generateRandomNumbers(int n) {
-    vector<int> numbers(n);
+// Функция для генерации случайной последовательности чисел с возможностью включения отрицательных значений
+vector<int> generateRandomNumbers(int count) {
+    vector<int> numbers(count);
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> dis(0, 100); // генератор
+    uniform_int_distribution<> dis(-10000, 10000); // Генератор чисел от -100 до 100 УЖЕ БОЛЬШЕ И С ОТРИЦАТЕЛЬНЫМИ :))))
 
-    for (int i = 0; i < n; ++i) {
-        numbers[i] = dis(gen);
+    for (int i = 0; i < count; ++i) {
+        numbers[i] = dis(gen); 
     }
     return numbers;
 }
 
-//  сортировка Шелла
+// Функция для сортировки массива методом Шелла
+// Возвращает общее количество перестановок, сделанных во время сортировки
 int shellSort(vector<int>& arr, const vector<int>& steps, ofstream& outFile) {
-    int totalSwaps = 0;
+    int totalSwaps = 0; //общее количество перестановок
 
+    // ПроходКА  ПО каждому шагу сортировки
     for (int step : steps) {
-        // сортировка с текущим шагом
+        // Сортировка с текущим шагом
         for (int i = step; i < arr.size(); i++) {
-            int temp = arr[i];
+            int temp = arr[i]; // текущее значение для сравнения !!!!!
             int j = i;
 
+            // Сравниваем элементы и сдвигаем их для вставки
             while (j >= step && arr[j - step] > temp) {
-                arr[j] = arr[j - step];
-                j -= step;
-                totalSwaps++;
+                arr[j] = arr[j - step]; // Перемещаем элемент
+                j -= step; // Переходим на шаг назад
+                totalSwaps++; // добавлеям счетчик
             }
-            arr[j] = temp;
+            arr[j] = temp; // вставляем сохраненое значение в нужное место
         }
 
-        // вывод промежутый
+        // промежуточный результат 
         cout << "После сортировки с шагом " << step << ": ";
         for (int num : arr) {
-            cout << num << " ";
+            cout << num << " "; 
         }
         cout << endl;
 
-        // вывод промежутый
+        // промежуточные резы в файлик
         outFile << "После сортировки с шагом " << step << ": ";
         for (int num : arr) {
-            outFile << num << " ";
+            outFile << num << " "; 
         }
         outFile << endl;
     }
 
-    return totalSwaps;
+    return totalSwaps; 
 }
 
-// фия для шагов
-vector<int> generateSteps(int n, int formula) {
-    vector<int> steps;
+// Ф-ия для генерации шагов для сортировки Шелла
+vector<int> generateSteps(int count, int formula) {
+    vector<int> steps; // Вектор для хранения шагов
     int step;
 
-    if (formula == 1) { // hi+1 = 3hi + 1
+    if (formula == 1) { // Формула hi+1 = 3hi + 1
         step = 1;
-        while (step < n) {
-            steps.push_back(step);
-            step = 3 * step + 1;
+        while (step < count) {
+            steps.push_back(step); // Добавляем шаг в вектор
+            step = 3 * step + 1; // следующий шаг
         }
     }
-    else if (formula == 2) { // hi+1 = 2hi + 1
+    else if (formula == 2) { // Формула hi+1 = 2hi + 1
         step = 1;
-        while (step < n) {
-            steps.push_back(step);
-            step = 2 * step + 1;
+        while (step < count) {
+            steps.push_back(step); // Добавляем шаг в вектор
+            step = 2 * step + 1; // следующий шаг
         }
     }
-    else if (formula == 3) { // hi+1 = 2hi
-        step = n / 2;
+    else if (formula == 3) { // Формула hi+1 = 2hi
+        step = count / 2;
         while (step > 0) {
-            steps.push_back(step);
-            step /= 2;
+            steps.push_back(step); // Добавляем шаг в вектор
+            step /= 2; // делим шаг на 2 для следующего
         }
     }
 
-    // обратить порядок для сортировки Шелла
+    // Обращаем порядок шагов для сортировки Шелла
     reverse(steps.begin(), steps.end());
-    return steps;
+    return steps; 
 }
 
 int main() {
-    setlocale(LC_ALL, "Rus");
+    setlocale(LC_ALL, "Rus"); // русская мова
 
-    int n;
+    int count; //  количествo чисел
     cout << "Введите количество чисел в сортируемой последовательности: ";
-    cin >> n;
+    cin >> count;
 
     // Генерация случайной последовательности
-    vector<int> numbers = generateRandomNumbers(n);
+    vector<int> numbers = generateRandomNumbers(count);
     cout << "Сгенерированная последовательность: ";
     for (int num : numbers) {
-        cout << num << " ";
+        cout << num << " "; 
     }
     cout << endl;
 
-    // Открываем файл для записи
+    // Запись в файл
     ofstream outFile("output.txt");
     if (!outFile) {
         cerr << "Не удалось открыть файл для записи!" << endl;
-        return 1;
+        return 1; 
     }
 
-    // Запись сгенерированной последовательности в файл
+    // сгенерированая последовательность с записькой в файл
     outFile << "Сгенерированная последовательность: ";
     for (int num : numbers) {
-        outFile << num << " ";
+        outFile << num << " "; 
     }
     outFile << endl;
 
     // Сортировка с шагом hi+1 = 3hi + 1
-    vector<int> numbersCopy = numbers; // Копируем оригинальный массив
-    vector<int> steps1 = generateSteps(n, 1);
+    vector<int> numbersCopy = numbers; // Копируем ориги
+    vector<int> steps1 = generateSteps(count, 1); // Генерируем шаги
     outFile << "Сортировка с шагом hi+1 = 3hi + 1:" << endl;
     cout << "Сортировка с шагом hi+1 = 3hi + 1:" << endl;
-    int swaps1 = shellSort(numbersCopy, steps1, outFile);
+
+    int swaps1 = shellSort(numbersCopy, steps1, outFile); 
     outFile << "Полностью отсортированная последовательность: ";
     for (int num : numbersCopy) {
-        outFile << num << " ";
+        outFile << num << " "; 
     }
     outFile << endl;
-    outFile << "Количество перестановок: " << swaps1 << endl;
+    outFile << "Количество перестановок: " << swaps1 << endl; 
+    cout << "Количество перестановок: " << swaps1 << endl; 
 
     // Сортировка с шагом hi+1 = 2hi + 1
-    numbersCopy = numbers; // Копируем оригинальный массив
-    vector<int> steps2 = generateSteps(n, 2);
+    numbersCopy = numbers; // Копируем оригу
+    vector<int> steps2 = generateSteps(count, 2); // Генерируем шаги
     outFile << "Сортировка с шагом hi+1 = 2hi + 1:" << endl;
     cout << "Сортировка с шагом hi+1 = 2hi + 1:" << endl;
-    int swaps2 = shellSort(numbersCopy, steps2, outFile);
+
+    int swaps2 = shellSort(numbersCopy, steps2, outFile); 
     outFile << "Полностью отсортированная последовательность: ";
     for (int num : numbersCopy) {
-        outFile << num << " ";
+        outFile << num << " "; 
     }
     outFile << endl;
     outFile << "Количество перестановок: " << swaps2 << endl;
+    cout << "Количество перестановок: " << swaps2 << endl; 
 
     // Сортировка с шагом hi+1 = 2hi
-    numbersCopy = numbers; // Копируем оригинальный массив
-    vector<int> steps3 = generateSteps(n, 3);
+    numbersCopy = numbers; // Копируем оригу
+    vector<int> steps3 = generateSteps(count, 3); // Генерируем шаги
     outFile << "Сортировка с шагом hi+1 = 2hi:" << endl;
     cout << "Сортировка с шагом hi+1 = 2hi:" << endl;
-    int swaps3 = shellSort(numbersCopy, steps3, outFile);
+
+    int swaps3 = shellSort(numbersCopy, steps3, outFile); 
     outFile << "Полностью отсортированная последовательность: ";
     for (int num : numbersCopy) {
-        outFile << num << " ";
+        outFile << num << " "; 
     }
     outFile << endl;
-    outFile << "Количество перестановок: " << swaps3 << endl;
+    outFile << "Количество перестановок: " << swaps3 << endl; 
+    cout << "Количество перестановок: " << swaps3 << endl; 
 
-    outFile.close();
-    cout << "Результаты сохранены в файл output.txt" << endl;
+    outFile.close(); // Закрываем файл
+    cout << "Результаты сохранены в файл output.txt" << endl; 
 
-    return 0;
+    return 0; 
 }
