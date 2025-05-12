@@ -1,4 +1,7 @@
 #include <iostream>
+#include <string>
+#include <sstream>
+#include <cctype>
 
 using namespace std;
 
@@ -143,6 +146,7 @@ public:
         if (node != nullptr) {
             displayTree(node->leftChild); // Сначала левое поддерево
             node->displayNode(); // Затем текущий узел
+            cout << " "; // Добавляем пробел между узлами
             displayTree(node->rightChild); // И правое поддерево
         }
     }
@@ -151,11 +155,39 @@ public:
     Node* getRoot() {
         return root;
     }
+
+    // Метод для вывода дерева в виде скобочной структуры
+    void printTreeStructure(Node* node) {
+        if (node == nullptr) {
+            cout << "null";
+            return;
+        }
+        cout << "(" << node->key << " ";
+        printTreeStructure(node->leftChild);
+        cout << " ";
+        printTreeStructure(node->rightChild);
+        cout << ")";
+    }
 };
 
-int main() {
+// Функция для проверки ввода
+bool validateInput(const string& input, int& output) {
+    try {
+        size_t pos;
+        output = stoi(input, &pos);
 
-    setlocale(LC_ALL,"Rus");
+        // Проверяем, что вся строка была обработана (нет лишних символов)
+        if (pos != input.length()) {
+            return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+int main() {
+    setlocale(LC_ALL, "Rus");
 
     Tree theTree; // Создаем дерево
 
@@ -172,10 +204,23 @@ int main() {
     theTree.insert(93);
     theTree.insert(97);
 
+    cout << "Первоначальная структура дерева:" << endl;
+    theTree.displayTree(theTree.getRoot());
+    cout << endl << endl;
+
     // Ввод ключа для поиска
+    string input;
     int searchKey;
-    cout << "Введите ключ для поиска: ";
-    cin >> searchKey;
+    while (true) {
+        cout << "Введите ключ для поиска: ";
+        cin >> input;
+
+        if (!validateInput(input, searchKey)) {
+            cout << "Ошибка: введите целое число!" << endl;
+            continue;
+        }
+        break;
+    }
 
     // Поиск узла
     Node* foundNode = theTree.find(searchKey);
@@ -190,20 +235,41 @@ int main() {
 
     // Вставляем ключ
     int insertKey;
-    cout << "Введите ключ для добавления: ";
-    cin >> insertKey;
-    theTree.insert(insertKey); 
+    while (true) {
+        cout << "Введите ключ для добавления: ";
+        cin >> input;
+
+        if (!validateInput(input, insertKey)) {
+            cout << "Ошибка: введите целое число!" << endl;
+            continue;
+        }
+        break;
+    }
+    theTree.insert(insertKey);
 
     // Ввод ключа для удаления
     int deleteKey;
-    cout << "Введите ключ для удаления: ";
-    cin >> deleteKey;
-    theTree.deleteKey(deleteKey); 
+    while (true) {
+        cout << "Введите ключ для удаления: ";
+        cin >> input;
 
-    // вывод структуры дерева в порядке возрастания
-    cout << "Структура дерева: " << endl;
-    theTree.displayTree(theTree.getRoot()); 
-    cout << endl;
+        if (!validateInput(input, deleteKey)) {
+            cout << "Ошибка: введите целое число!" << endl;
+            continue;
+        }
+        break;
+    }
+    theTree.deleteKey(deleteKey);
 
-    return 0; 
+    // Вывод структуры дерева в порядке возрастания
+    cout << "Структура дерева (in-order):" << endl;
+    theTree.displayTree(theTree.getRoot());
+    cout << endl << endl;
+
+    // Вывод дерева в виде скобочной структуры
+    //cout << "Структура дерева (скобочная форма):" << endl;
+    //theTree.printTreeStructure(theTree.getRoot());
+    //cout << endl;
+
+    return 0;
 }
