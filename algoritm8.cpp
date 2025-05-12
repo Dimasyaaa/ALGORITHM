@@ -1,7 +1,8 @@
 #include <iostream>
 #include <vector>
-#include <cstdlib> // рандом 
+#include <cstdlib> // рандом
 #include <ctime>   // рандом
+#include <fstream> // добавлено для работы с файлами
 
 using namespace std;
 
@@ -10,7 +11,7 @@ int recursiveCallsCount = 0;
 
 // ф-ия для слияния двух сортированных подмассивов
 void merge(vector<int>& arr, int left, int mid, int right) {
-    
+
     // размеры подмассивов
     int n1 = mid - left + 1;
     int n2 = right - mid;
@@ -26,7 +27,7 @@ void merge(vector<int>& arr, int left, int mid, int right) {
         R[j] = arr[mid + 1 + j];
 
     // слияние временных массивов обратно в arr[left..right]
-    
+
     int i = 0; // индекс 1 подмассива
     int j = 0; // индекс 2 подмассива
     int k = left; // индекс слияния
@@ -89,9 +90,7 @@ vector<int> generateRandomNumbers(int n, bool generateNegative) {
 }
 
 int main() {
-
     setlocale(LC_ALL, "Rus");
-
     srand(static_cast<unsigned int>(time(0))); // генератор случайных чисел
 
     int n;
@@ -100,10 +99,10 @@ int main() {
     cout << "Введите количество чисел для сортировки: ";
     cin >> n;
 
-    cout << "Выберите тип чисел (n - натуральные, d - отрицательные): ";
+    cout << "Выберите тип чисел (n - натуральные, o - с отрицательными): ";
     cin >> choice;
 
-    bool generateNegative = choice == 'd';
+    bool generateNegative = choice == 'o';
 
     // случайные числа
     vector<int> numbers = generateRandomNumbers(n, generateNegative);
@@ -124,6 +123,18 @@ int main() {
     cout << endl;
 
     cout << "Количество рекурсивных вызовов: " << recursiveCallsCount << endl;
+    cout<<"Все успешно записалось в sort_results.txt"<< endl;
+
+    // записька в файл
+    ofstream outFile("sort_results.txt", ios::app);
+    if (outFile.is_open()) {
+        outFile << "Количество элементов: " << n << endl;
+        outFile << "Тип чисел: " << (generateNegative ? "С отрицательными" : "Натуральные") << endl;
+        outFile << "Рекурсивных вызовов: " << recursiveCallsCount << endl;
+        outFile << "------------------------" << endl;
+        outFile.close();
+    }
 
     return 0;
+
 }
