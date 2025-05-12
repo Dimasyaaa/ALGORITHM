@@ -265,11 +265,5 @@ int main() {
     cout << "Структура дерева (in-order):" << endl;
     theTree.displayTree(theTree.getRoot());
     cout << endl << endl;
-
-    // Вывод дерева в виде скобочной структуры
-    //cout << "Структура дерева (скобочная форма):" << endl;
-    //theTree.printTreeStructure(theTree.getRoot());
-    //cout << endl;
-
     return 0;
 }
