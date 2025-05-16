@@ -1,49 +1,48 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <limits>   // Для numeric_limits
-#include <sstream>  // Для stringstream
+#include <limits>   
+#include <sstream>
 
 using namespace std;
 
-// структура ребра графи
+// Структура для представления ребра графа
 struct Edge {
-    int u, v, weight;
+    int u, v, weight;  // вершины u и v, вес ребра
     Edge(int u, int v, int w) : u(u), v(v), weight(w) {}
-    // перегрузка оператора для сортировки рёбер по возрастанию веса
+    // Перегрузка оператора < для сортировки рёбер по весу
     bool operator<(const Edge& other) const {
         return weight < other.weight;
     }
 };
 
-// классс системы непересекающихся множеств (DSU)
+// Класс для системы непересекающихся множеств (DSU)
 class DSU {
 private:
-    vector<int> parent;  // массив для хранения родительских вершин
-    vector<int> rank;    // ранг для объединения по высоте дерева
+    vector<int> parent;  // массив родителей вершин
+    vector<int> rank;    // массив рангов вершин
 
 public:
     DSU(int n) {
         parent.resize(n);
         rank.resize(n, 0);
-        // Инициализация: каждая вершина - своя собственная родительская
+        // Изначально каждая вершина - своё собственное множество
         for (int i = 0; i < n; ++i)
             parent[i] = i;
     }
 
-    // найти корень множества, содержащего вершину u
+    // Нахождение корня множества для вершины u с path compression
     int find(int u) {
         if (parent[u] != u)
-            parent[u] = find(parent[u]); // оптимизация
+            parent[u] = find(parent[u]);
         return parent[u];
     }
 
-    // объединить множества, содержащие вершины u и v
+    // Объединение множеств, содержащих u и v, с union by rank
     void unite(int u, int v) {
         u = find(u);
         v = find(v);
         if (u != v) {
-            // поддерживаем дерево с меньшим рангом под корнем дерева с большим рангом
             if (rank[u] < rank[v])
                 swap(u, v);
             parent[v] = u;
@@ -53,13 +52,13 @@ public:
     }
 };
 
-// ф-ия для безопасного ввода целого числа с проверкой диапазона
+// Функция для безопасного чтения целого числа с проверками
 int readInt(const string& prompt, int minVal, int maxVal) {
     int value;
     while (true) {
         cout << prompt;
         string line;
-        getline(cin, line);
+        cin >> line;
         stringstream ss(line);
         if (ss >> value && ss.eof()) {
             if (value >= minVal && value <= maxVal) {
@@ -74,30 +73,29 @@ int readInt(const string& prompt, int minVal, int maxVal) {
 }
 
 int main() {
-
     setlocale(LC_ALL, "Rus");
 
-    // ввод количества вершин с проверкой
-    int n = readInt("Введите количество вершин (не менее 1): ", 1, numeric_limits<int>::max());
+    cout << "Алгоритм Краскала для поиска минимального остовного дерева\n";
+    cout << "Примечание: вершины нумеруются с 0!\n\n";
 
-    // ввод количества рёбер с проверкой
+    // Чтение количества вершин и рёбер
+    int n = readInt("Введите количество вершин (не менее 1): ", 1, numeric_limits<int>::max());
     int m = readInt("Введите количество рёбер (не менее 0): ", 0, numeric_limits<int>::max());
 
     vector<Edge> edges;
     edges.reserve(m);
 
-    // ввод рёбер с проверкой
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Очистка буфера
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    // Чтение рёбер с проверками
     for (int i = 0; i < m; ++i) {
         int u, v, w;
         bool valid = false;
         while (!valid) {
-            cout << "Введите ребро " << i + 1 << " в формате u v w: ";
+            cout << "Введите ребро " << i + 1 << " (u v w), где u и v - вершины (0.." << n-1 << "), w - вес: ";
             string line;
             getline(cin, line);
             stringstream ss(line);
             if (ss >> u >> v >> w) {
-                // проверка на лишние символы
                 char extra;
                 if (ss >> extra) {
                     cout << "Ошибка: лишние символы в строке.\n";
@@ -113,49 +111,63 @@ int main() {
                 }
             }
             else {
-                cout << "Ошибка: некорректный ввод. Введите три целых числа.\n";
+                cout << "Ошибка: некорректный ввод. Введите три целых числа (u v w).\n";
             }
         }
         edges.emplace_back(u, v, w);
     }
 
-    // входные данные
+    // Вывод введённых рёбер
     cout << "\nВходные данные (рёбра графа):\n";
     for (const Edge& e : edges) {
         cout << e.u << " - " << e.v << " : " << e.weight << endl;
     }
 
-    // сортировка рёбер по возрастанию веса
+    // Сортировка рёбер по весу (ключевой шаг алгоритма Крускала)
     sort(edges.begin(), edges.end());
-
-    DSU dsu(n);          // инициализация DSU
-    vector<Edge> mst;    // минимальное остовное дерево
-    int total_weight = 0; // суммарный вес MST
-
-    // Алгоритм Крускала: обработка рёбер в порядке возрастания веса
+    cout << "\nРёбра после сортировки по весу:\n";
     for (const Edge& e : edges) {
+        cout << e.u << " - " << e.v << " : " << e.weight << endl;
+    }
+
+    // Построение MST с помощью DSU
+    DSU dsu(n);
+    vector<Edge> mst;
+    int total_weight = 0;
+    
+    cout << "\nПроцесс построения MST:\n";
+    for (const Edge& e : edges) {
+        cout << "Проверяем ребро " << e.u << "-" << e.v << " (вес " << e.weight << "): ";
+        
+        // Если вершины в разных компонентах связности, добавляем ребро в MST
         if (dsu.find(e.u) != dsu.find(e.v)) {
+            cout << "добавляем в MST (вершины в разных компонентах)\n";
             mst.push_back(e);
             total_weight += e.weight;
             dsu.unite(e.u, e.v);
-            // если дерево уже содержит n-1 ребро, завершаем цикл
-            if (mst.size() == n - 1)
+            
+            // MST содержит n-1 ребро для n вершин
+            if (mst.size() == n - 1) {
+                cout << "Получено " << n-1 << " ребро - MST построено.\n";
                 break;
+            }
+        } else {
+            cout << "пропускаем (вершины в одной компоненте)\n";
         }
     }
 
-    // проверка на связность графа
+    // Проверка связности графа
     if (mst.size() != n - 1) {
         cout << "\nГраф не связный, минимальное остовное дерево не существует.\n";
         return 0;
     }
 
-    // резы
-    cout << "\nРёбра минимального остовного дерева:\n";
+    // Вывод результатов
+    cout << "\nРезультат:\nРёбра минимального остовного дерева:\n";
     for (const Edge& e : mst) {
         cout << e.u << " - " << e.v << " : " << e.weight << endl;
     }
-    cout << "Суммарный вес: " << total_weight << endl;
+    cout << "Суммарный вес MST: " << total_weight << endl;
 
     return 0;
 }
