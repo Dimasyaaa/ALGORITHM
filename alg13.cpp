@@ -6,154 +6,148 @@
 
 using namespace std;
 
+// константа недостижимой вершины
 const int INF = numeric_limits<int>::max();
 
+// структура ребра
 struct Edge {
-    int target;
-    int weight;
+    int target;    // номер вершины
+    int weight;    // вес ребра 
     Edge(int t, int w) : target(t), weight(w) {}
 };
+
+// ф-ия для безопасного ввода чисел
+int getInput(const string& prompt, int minVal, int maxVal) {
+    int value;
+    while (true) {
+        cout << prompt;
+        string line;
+        getline(cin, line);
+        stringstream ss(line);
+        if (ss >> value && value >= minVal && value <= maxVal) {
+            return value;
+        }
+        cout << "Ошибка! Введите число от " << minVal << " до " << maxVal << ".\n";
+    }
+}
 
 int main() {
     setlocale(LC_ALL, "Rus");
 
-    int n, m, start;
+    // пояснение для пользователя
+    cout << "Алгоритм Дейкстры — это метод поиска кратчайшего пути от одной вершины графа ко всем остальным.\n";
+    cout << "INF - это специальное значение, обозначающее, что вершина недостижима из стартовой точки.\n\n";
 
-    // Ввод количества вершин
-    cout << "Введите количество вершин (2-100): ";
-    cin >> n;
-    while (n < 2 || n > 100) {
-        cout << "Некорректный ввод. Введите количество вершин (2-100): ";
-        cin >> n;
-    }
+    // ввод основных параметров графа
+    int n = getInput("Введите количество вершин (2-100): ", 2, 100);
+    int m = getInput("Введите количество рёбер (1-" + to_string(n * (n - 1)) + "): ", 1, n * (n - 1));
+    int start = getInput("Введите стартовую вершину (0-" + to_string(n - 1) + "): ", 0, n - 1);
 
-    // Ввод количества рёбер
-    cout << "Введите количество рёбер (1-" << n * (n - 1) << "): ";
-    cin >> m;
-    while (m < 1 || m > n * (n - 1)) {
-        cout << "Некорректный ввод. Введите количество рёбер (1-" << n * (n - 1) << "): ";
-        cin >> m;
-    }
-
-    // Ввод стартовой вершины
-    cout << "Введите стартовую вершину (0-" << n - 1 << "): ";
-    cin >> start;
-    while (start < 0 || start >= n) {
-        cout << "Некорректный ввод. Введите стартовую вершину (0-" << n - 1 << "): ";
-        cin >> start;
-    }
-
+    // создание списка смежности для представления графа
     vector<vector<Edge>> graph(n);
 
-    // Заполнение рёбер
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    // блок ввода рёбер
+    cout << "\n=== Ввод рёбер ===\n";
     for (int i = 0; i < m; ++i) {
-        bool valid = false;
-        int u, v, w;
-        while (!valid) {
+        while (true) {
             cout << "Введите ребро " << i + 1 << " (u v w): ";
             string line;
             getline(cin, line);
             stringstream ss(line);
+            int u, v, w;
+
+            
             if (ss >> u >> v >> w) {
-                char extra;
-                if (ss >> extra) {
-                    cout << "Ошибка: лишние символы.\n";
+                // проверка корректности номеров вершин
+                if (u < 0 || u >= n || v < 0 || v >= n) {
+                    cout << "Неверные номера вершин! ";
+                    continue;
                 }
-                else if (u < 0 || u >= n || v < 0 || v >= n) {
-                    cout << "Ошибка: вершины должны быть 0-" << n - 1 << ".\n";
+                // проверка положительности веса
+                if (w <= 0) {
+                    cout << "Вес должен быть положительным! ";
+                    continue;
                 }
-                else if (w < 1) {
-                    cout << "Ошибка: вес должен быть положительным.\n";
-                }
-                else {
-                    valid = true;
-                }
+                // добавление ребра в граф
+                graph[u].emplace_back(v, w);
+                break;
             }
-            else {
-                cout << "Ошибка: некорректный формат.\n";
-            }
+            cout << "Ошибка формата! ";
         }
-        graph[u].emplace_back(v, w);
     }
 
-    // Вывод информации о графе
-    cout << "\nСтруктура графа:\n";
-    for (int i = 0; i < n; ++i) {
-        cout << "Вершина " << i << " соединена с: ";
-        for (const Edge& e : graph[i]) {
-            cout << e.target << "(вес " << e.weight << ") ";
-        }
-        cout << "\n";
-    }
+    // алгоритм Дейкстры
+    vector<int> dist(n, INF);  // массив кратчайших расстояний
+    dist[start] = 0;           // нулевое расстояние до стартовой вершины
 
-    // АЛГОРИТМ Дейкстры
-    vector<int> dist(n, INF);  // массив расстояний
-    dist[start] = 0;
-
-    // приоритетная очередь: (расстояние, вершина)
+    // приоритетная очередь для выбора следующей вершины с минимальным расстоянием
     priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
     pq.push({ 0, start });
 
+    // начало работы алгоритма
+    cout << "\n=== Начало обработки ===\n";
+    cout << "Стартовая вершина: [" << start << "]\n";
+    cout << "Инициализация расстояний: ";
+    for (int i = 0; i < n; ++i) {
+        cout << (i == start ? "0" : "INF") << " ";
+    }
+    cout << "\n" << string(50, '-') << endl;
+
     int step = 1;
     while (!pq.empty()) {
-        cout << "\n=== Итерация " << step++ << " ===\n";
-        cout << "Состояние очереди перед извлечением: ";
-        auto pq_copy = pq;
-        while (!pq_copy.empty()) {
-            cout << "(" << pq_copy.top().first << "," << pq_copy.top().second << ") ";
-            pq_copy.pop();
-        }
-        cout << "\n";
 
+        // извлечение вершины с минимальным текущим расстоянием
         int current_dist = pq.top().first;
         int u = pq.top().second;
         pq.pop();
 
-        cout << "Извлекаем вершину " << u << " с расстоянием " << current_dist << "\n";
+        cout << "\nШаг " << step++ << ":\n";
+        cout << "Извлечена вершина [" << u << "] с текущим расстоянием " << current_dist << "\n";
 
-        // пропускаем устаревшие записи
+        // проверка на актуальность извлеченного расстояния
         if (current_dist > dist[u]) {
-            cout << "Это устаревшее расстояние, пропускаем\n";
+            cout << "  ! Устаревшее расстояние! Текущее лучше: " << dist[u] << " < " << current_dist << ". Пропуск.\n";
             continue;
         }
 
-        // обновляем расстояния до соседей
-        cout << "Обрабатываем соседей вершины " << u << ":\n";
+        // обработка всех исходящих рёбер текущей вершины
+        cout << "  Обработка рёбер:\n";
         for (const Edge& e : graph[u]) {
             int v = e.target;
-            int new_dist = current_dist + e.weight;  // Исправлено: используем current_dist вместо dist[u]
-            cout << "  Сосед " << v << ", текущее расстояние: " << dist[v] 
-                 << ", возможное новое: " << new_dist;
-            
+            int new_dist = current_dist + e.weight;
+
+            // инфа о текущем ребре
+            cout << "  * Ребро " << u << "->" << v << " (вес " << e.weight << ")\n";
+            cout << "    Текущее расстояние до [" << v << "]: "
+                << (dist[v] == INF ? "INF" : to_string(dist[v]))
+                << " | Новое: " << new_dist;
+
+            // обнова расстояния при нахождении более короткого пути
             if (new_dist < dist[v]) {
                 dist[v] = new_dist;
                 pq.push({ new_dist, v });
-                cout << " - ОБНОВЛЕНО\n";
-            } else {
-                cout << " - не улучшено\n";
+                cout << "  [V] Улучшение! Добавляем [" << v << "] в очередь.\n";
+            }
+            else {
+                cout << "  [X] Не улучшает.\n";
             }
         }
 
-        // Вывод текущих расстояний
-        cout << "Текущие расстояния после итерации:\n";
+        // промежуточное состояние расстояний
+        cout << "\nТекущее состояние расстояний:\n";
         for (int i = 0; i < n; ++i) {
-            cout << "До " << i << ": ";
-            if (dist[i] == INF) cout << "INF";
-            else cout << dist[i];
-            cout << "\n";
+            cout << "[" << i << "]: "
+                << (dist[i] == INF ? "INF" : to_string(dist[i])) << " | ";
         }
+        cout << "\n" << string(50, '-') << endl;
     }
 
     // резы
-    cout << "\nИтоговые кратчайшие расстояния от вершины " << start << ":\n";
+    cout << "\n=== Результаты ===\n";
     for (int i = 0; i < n; ++i) {
-        if (dist[i] == INF) {
-            cout << "До вершины " << i << ": недостижима\n";
-        }
-        else {
-            cout << "До вершины " << i << ": " << dist[i] << "\n";
-        }
+        cout << "-> До вершины [" << i << "]: ";
+        if (dist[i] == INF) cout << "недостижима\n";
+        else cout << dist[i] << "\n";
     }
 
     return 0;
